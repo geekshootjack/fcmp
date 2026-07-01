@@ -7,12 +7,6 @@ Built for verifying transcode jobs: after producing proxies from source clips,
 confirm no clip was dropped. In a long-running session, corrupted clips can be
 skipped silently — this catches those gaps.
 
-> **fcmp does not verify file contents.** Matching is filename-based; there are no
-> checksums or hashes. `proxy-frames` mode adds a frame-count check via [mediainfo](https://mediaarea.net/en/MediaInfo)
-> to flag truncated or corrupted proxies, which is still a metadata check, never
-> byte-level. For true backup or mirror integrity, reach for `rsync -c`, `shasum`,
-> or a dedicated dedupe/verification tool.
-
 - **Normal mode** — match by filename (name + extension)
 - **Proxy mode** — match video files by basename, ignoring extension
 - **Proxy-frames mode** — proxy mode plus frame-count verification
@@ -25,7 +19,7 @@ Exports to JSON, TXT, CSV, or HTML (or any combination in a single run).
 - [uv](https://docs.astral.sh/uv/) for install / run
 - `mediainfo` CLI (only for `proxy-frames` mode):
 
-  ```sh
+  ```bash
   # macOS
   brew install mediainfo
 
@@ -38,9 +32,9 @@ Exports to JSON, TXT, CSV, or HTML (or any combination in a single run).
 
 ## Install
 
-```sh
-git clone https://github.com/UserProjekt/File_Compare.git
-cd File_Compare
+```bash
+git clone https://github.com/geekshootjack/fcmp.git
+cd fcmp
 uv sync
 ```
 
@@ -78,7 +72,7 @@ fcmp -a DIR [DIR ...] -b DIR [DIR ...]
 
 ## Examples
 
-```sh
+```bash
 # Simple: compare two directories, write an HTML report to the current dir.
 uv run fcmp -a /src -b /backup
 
@@ -99,7 +93,7 @@ uv run fcmp -a /Volumes/Originals -b /Volumes/Proxies -m proxy-frames -f html
 
 **Video production workflow:**
 
-```sh
+```bash
 # Compare original footage with proxy files.
 uv run fcmp -m proxy -f html \
   -a /Volumes/Storage/Originals \
@@ -118,7 +112,7 @@ uv run fcmp -m proxy-frames -f html \
 
 **Copy-completeness check across multiple drives:**
 
-```sh
+```bash
 # Confirm every file in Backup1 + Backup2 also exists on the master drive.
 uv run fcmp -f csv \
   -a /Volumes/Backup1 /Volumes/Backup2 \
@@ -127,7 +121,7 @@ uv run fcmp -f csv \
 
 **Multi-location archive:**
 
-```sh
+```bash
 # Check whether every archived file made it into the current project set.
 uv run fcmp -f json \
   -a /Archive/2024/Q1 /Archive/2024/Q2 /Archive/2024/Q3 \
@@ -136,7 +130,7 @@ uv run fcmp -f json \
 
 **Proxy-encoding QC:**
 
-```sh
+```bash
 # Flag proxies that are missing or have the wrong frame count.
 uv run fcmp -m proxy-frames -f html \
   -a /Production/Camera_Originals \
@@ -162,7 +156,7 @@ fcmp/
 
 ## Development
 
-```sh
+```bash
 # Install dev deps (pytest + coverage).
 uv sync --all-groups
 

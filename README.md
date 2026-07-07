@@ -12,6 +12,8 @@ skipped silently — this catches those gaps.
 - **Proxy-frames mode** — proxy mode plus frame-count verification
 
 Exports to JSON, TXT, CSV, or HTML (or any combination in a single run).
+The HTML report is interactive: sections collapse/expand, and a live filter
+box narrows the path lists.
 
 ## Prerequisites
 
@@ -48,6 +50,7 @@ the venv.
 fcmp -a DIR [DIR ...] -b DIR [DIR ...]
      [-m {normal,proxy,proxy-frames}]
      [-f {json,txt,csv,html} ...]
+     [-i PATTERN [PATTERN ...]]
      [-o OUTPUT_DIR] [-q]
 ```
 
@@ -59,6 +62,7 @@ fcmp -a DIR [DIR ...] -b DIR [DIR ...]
 | `-b`, `--group-b` | One or more directories making up group B | required |
 | `-m`, `--mode` | `normal`, `proxy`, or `proxy-frames` | `normal` |
 | `-f`, `--format` | One or more of `json`, `txt`, `csv`, `html` | `html` |
+| `-i`, `--ignore` | Name patterns to exclude from the comparison (glob syntax, case-insensitive; trailing `/` restricts a pattern to directories) | none |
 | `-o`, `--output-dir` | Directory to write reports into | current dir |
 | `-q`, `--quiet` | Suppress progress and summary output | off |
 | `--version` | Print version and exit | — |
@@ -81,6 +85,9 @@ uv run fcmp -a /src -b /backup -f html json csv
 
 # Multiple directories per group (supersedes the old "+" syntax).
 uv run fcmp -a /part1 /part2 /part3 -b /mirror -o reports/
+
+# Ignore sync/hash artifacts so only real media differences are reported.
+uv run fcmp -a /src -b /backup -i _gsdata_ '*.log' '*.mhl' ascmhl/
 
 # Video proxy: match by basename, ignore extension.
 uv run fcmp -a /Volumes/Originals -b /Volumes/Proxies -m proxy

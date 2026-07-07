@@ -2,6 +2,7 @@ from pathlib import Path
 
 import pytest
 
+from fcmp.filters import IgnoreList
 from fcmp.scanner import FileEntry, KeyMode, scan, scan_groups
 
 
@@ -96,3 +97,29 @@ def test_scan_on_file_callback_called_per_kept_file(tree: Path) -> None:
     seen: list[Path] = []
     scan(tree, on_file=seen.append)
     assert len(seen) == 5
+
+
+def test_scan_ignore_skips_matching_files(tmp_path: Path) -> None:
+    _touch(tmp_path / "clip.mp4")
+    _touch(tmp_path / "transfer.log")
+    _touch(tmp_path / "shoot.mhl")
+    ignore = IgnoreList.from_patterns(["*.log", "*.mhl"])
+    result = scan(tmp_path, ignore=ignore)
+    assert set(result.keys()) == {"clip.mp4"}
+
+
+def test_scan_ignore_prunes_matching_dirs(tmp_path: Path) -> None:
+    _touch(tmp_path / "clip.mp4")
+    _touch(tmp_path / "_gsdata_" / "hidden.mp4")
+    _touch(tmp_path / "ascmhl" / "hash.mhl")
+    ignore = IgnoreList.from_patterns(["_gsdata_", "ascmhl/"])
+    result = scan(tmp_path, ignore=ignore)
+    assert set(result.keys()) == {"clip.mp4"}
+
+
+def test_scan_groups_passes_ignore_through(tmp_path: Path) -> None:
+    a = tmp_path / "a"
+    _touch(a / "x.mp4")
+    _touch(a / "x.log")
+    result = scan_groups([a], ignore=IgnoreList.from_patterns(["*.log"]))
+    assert set(result.keys()) == {"x.mp4"}

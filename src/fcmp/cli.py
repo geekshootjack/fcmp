@@ -20,6 +20,7 @@ from rich.table import Table
 from fcmp import __version__, mediainfo
 from fcmp.compare import compare
 from fcmp.exporters import EXPORTERS, Report, export
+from fcmp.filters import IgnoreList
 from fcmp.scanner import KeyMode, scan_groups
 
 MODE_CHOICES: tuple[str, ...] = ("normal", "proxy", "proxy-frames")
@@ -41,6 +42,7 @@ def build_parser() -> argparse.ArgumentParser:
             "  fcmp -a /originals -b /proxies -m proxy\n"
             "  fcmp -a /originals -b /proxies -m proxy-frames -f html json\n"
             "  fcmp -a /part1 /part2 -b /mirror -o reports/\n"
+            "  fcmp -a /src -b /backup -i _gsdata_ '*.log' '*.mhl' ascmhl/\n"
         ),
     )
     parser.add_argument(
@@ -83,6 +85,18 @@ def build_parser() -> argparse.ArgumentParser:
         default=Path.cwd(),
         metavar="DIR",
         help="Directory for report files (default: current directory).",
+    )
+    parser.add_argument(
+        "-i",
+        "--ignore",
+        nargs="+",
+        default=[],
+        metavar="PATTERN",
+        help=(
+            "File/directory name patterns to ignore during comparison "
+            "(glob syntax, case-insensitive; a trailing '/' restricts a "
+            "pattern to directories). Example: -i _gsdata_ '*.log' '*.mhl' ascmhl/"
+        ),
     )
     parser.add_argument(
         "-q", "--quiet", action="store_true", help="Suppress progress and status output."
@@ -129,6 +143,8 @@ def _render_summary(
     summary.add_row("Mode", report.mode)
     summary.add_row("Group A dirs", ", ".join(str(p) for p in report.dirs_a))
     summary.add_row("Group B dirs", ", ".join(str(p) for p in report.dirs_b))
+    if report.ignored:
+        summary.add_row("Ignored", ", ".join(report.ignored))
     summary.add_row("Unique in A", str(len(report.result.unique_a)))
     summary.add_row("Unique in B", str(len(report.result.unique_b)))
     if report.mode == "proxy-frames":
@@ -146,8 +162,11 @@ def _scan_with_progress(
     *,
     mode: str,
     quiet: bool,
+    ignore: IgnoreList | None = None,
 ) -> dict:
     opts = _scan_opts(mode)
+    if ignore:
+        opts["ignore"] = ignore
 
     if quiet:
         return scan_groups(paths, **opts)
@@ -189,11 +208,23 @@ def main(argv: Sequence[str] | None = None) -> int:
 
     args.output_dir.mkdir(parents=True, exist_ok=True)
 
+    ignore = IgnoreList.from_patterns(args.ignore)
+
     files_a = _scan_with_progress(
-        console, "Scanning group A", args.group_a, mode=args.mode, quiet=args.quiet
+        console,
+        "Scanning group A",
+        args.group_a,
+        mode=args.mode,
+        quiet=args.quiet,
+        ignore=ignore,
     )
     files_b = _scan_with_progress(
-        console, "Scanning group B", args.group_b, mode=args.mode, quiet=args.quiet
+        console,
+        "Scanning group B",
+        args.group_b,
+        mode=args.mode,
+        quiet=args.quiet,
+        ignore=ignore,
     )
 
     result = compare(files_a, files_b, check_frames=args.mode == "proxy-frames")
@@ -202,6 +233,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         dirs_a=list(args.group_a),
         dirs_b=list(args.group_b),
         result=result,
+        ignored=list(args.ignore),
     )
 
     stamp = report.generated_at.strftime("%Y%m%d_%H%M%S")

@@ -82,6 +82,49 @@ def test_main_end_to_end_normal_mode(tmp_path: Path) -> None:
     assert [Path(p).name for p in data["unique_in_b"]] == ["only_b.txt"]
 
 
+def test_build_parser_accepts_ignore_patterns(tmp_path: Path) -> None:
+    parser = cli.build_parser()
+    args = parser.parse_args(
+        ["-a", str(tmp_path), "-b", str(tmp_path), "-i", "_gsdata_", "*.log"]
+    )
+    assert args.ignore == ["_gsdata_", "*.log"]
+
+
+def test_main_ignore_excludes_files_and_dirs(tmp_path: Path) -> None:
+    a = tmp_path / "a"
+    b = tmp_path / "b"
+    _touch(a / "same.mp4")
+    _touch(a / "only_in_a.log")
+    _touch(a / "_gsdata_" / "junk.mp4")
+    _touch(b / "same.mp4")
+    out = tmp_path / "reports"
+
+    exit_code = cli.main(
+        [
+            "-a",
+            str(a),
+            "-b",
+            str(b),
+            "-i",
+            "_gsdata_",
+            "*.log",
+            "-f",
+            "json",
+            "-o",
+            str(out),
+            "--quiet",
+        ]
+    )
+    assert exit_code == 0
+
+    import json
+
+    data = json.loads(next(out.glob("*.json")).read_text(encoding="utf-8"))
+    assert data["unique_in_a"] == []
+    assert data["unique_in_b"] == []
+    assert data["ignored"] == ["_gsdata_", "*.log"]
+
+
 def test_main_exits_nonzero_on_missing_path(tmp_path: Path) -> None:
     missing = tmp_path / "nope"
     exit_code = cli.main(

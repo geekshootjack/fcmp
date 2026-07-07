@@ -66,13 +66,12 @@ def test_export_json_shape(simple_report: Report, tmp_path: Path) -> None:
     export(simple_report, out, "json")
     data = json.loads(out.read_text(encoding="utf-8"))
     assert data["mode"] == "normal"
-    assert data["group_a"]["directories"] == ["/src/a"]
-    assert data["group_b"]["directories"] == ["/src/b"]
-    assert data["unique_in_a"] == ["/src/a/only_a.mp4"]
-    assert sorted(data["unique_in_b"]) == [
-        "/src/b/another.mkv",
-        "/src/b/only_b.mov",
-    ]
+    assert data["group_a"]["directories"] == [str(Path("/src/a"))]
+    assert data["group_b"]["directories"] == [str(Path("/src/b"))]
+    assert data["unique_in_a"] == [str(Path("/src/a/only_a.mp4"))]
+    assert sorted(data["unique_in_b"]) == sorted(
+        [str(Path("/src/b/another.mkv")), str(Path("/src/b/only_b.mov"))]
+    )
     assert "frame_mismatches" not in data or data["frame_mismatches"] == []
 
 
@@ -101,7 +100,7 @@ def test_export_json_handles_unicode(tmp_path: Path) -> None:
     out = tmp_path / "out.json"
     export(report, out, "json")
     data = json.loads(out.read_text(encoding="utf-8"))
-    assert data["unique_in_a"] == ["/原始/视频.mp4"]
+    assert data["unique_in_a"] == [str(Path("/原始/视频.mp4"))]
 
 
 def test_export_txt_contains_key_sections(
@@ -111,8 +110,8 @@ def test_export_txt_contains_key_sections(
     export(simple_report, out, "txt")
     text = out.read_text(encoding="utf-8")
     assert "normal" in text.lower() or "Mode" in text
-    assert "/src/a/only_a.mp4" in text
-    assert "/src/b/only_b.mov" in text
+    assert str(Path("/src/a/only_a.mp4")) in text
+    assert str(Path("/src/b/only_b.mov")) in text
 
 
 def test_export_txt_includes_frame_mismatches(
@@ -132,8 +131,8 @@ def test_export_csv_is_valid(simple_report: Report, tmp_path: Path) -> None:
     with out.open(encoding="utf-8-sig", newline="") as f:
         rows = list(csv.reader(f))
     flat = [cell for row in rows for cell in row]
-    assert "/src/a/only_a.mp4" in flat
-    assert "/src/b/only_b.mov" in flat
+    assert str(Path("/src/a/only_a.mp4")) in flat
+    assert str(Path("/src/b/only_b.mov")) in flat
 
 
 def test_export_html_contains_paths_and_escapes(
@@ -145,7 +144,7 @@ def test_export_html_contains_paths_and_escapes(
     assert body.startswith(b"\xef\xbb\xbf"), "HTML should have UTF-8 BOM"
     text = body.decode("utf-8-sig")
     assert "<html" in text
-    assert "/src/a/only_a.mp4" in text
+    assert str(Path("/src/a/only_a.mp4")) in text
 
 
 def test_export_html_escapes_special_chars(tmp_path: Path) -> None:
@@ -160,8 +159,50 @@ def test_export_html_escapes_special_chars(tmp_path: Path) -> None:
     out = tmp_path / "out.html"
     export(report, out, "html")
     text = out.read_bytes().decode("utf-8-sig")
-    assert "<script>" not in text
-    assert "&lt;script&gt;" in text
+    assert "<script>.mp4" not in text
+    assert "&lt;script&gt;.mp4" in text
+
+
+def test_export_html_has_collapsible_sections_and_toolbar(
+    simple_report: Report, tmp_path: Path
+) -> None:
+    out = tmp_path / "out.html"
+    export(simple_report, out, "html")
+    text = out.read_bytes().decode("utf-8-sig")
+    assert text.count("<details") == 2  # Group A + Group B sections
+    assert "<summary>" in text
+    assert 'id="filter"' in text
+    assert "Expand all" in text
+    assert "Collapse all" in text
+
+
+def test_export_html_shows_ignored_patterns(tmp_path: Path) -> None:
+    report = Report(
+        mode="normal",
+        dirs_a=[Path("/a")],
+        dirs_b=[Path("/b")],
+        result=ComparisonResult(unique_a=[], unique_b=[], frame_mismatches=[]),
+        ignored=["_gsdata_", "*.log"],
+    )
+    out = tmp_path / "out.html"
+    export(report, out, "html")
+    text = out.read_bytes().decode("utf-8-sig")
+    assert "Ignored:" in text
+    assert "_gsdata_, *.log" in text
+
+
+def test_export_json_includes_ignored(tmp_path: Path) -> None:
+    report = Report(
+        mode="normal",
+        dirs_a=[Path("/a")],
+        dirs_b=[Path("/b")],
+        result=ComparisonResult(unique_a=[], unique_b=[], frame_mismatches=[]),
+        ignored=["*.mhl"],
+    )
+    out = tmp_path / "out.json"
+    export(report, out, "json")
+    data = json.loads(out.read_text(encoding="utf-8"))
+    assert data["ignored"] == ["*.mhl"]
 
 
 def test_export_unknown_format_raises(simple_report: Report, tmp_path: Path) -> None:

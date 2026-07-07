@@ -34,6 +34,33 @@ box narrows the path lists.
 
 ## Install
 
+### As a tool (recommended)
+
+Install straight from GitHub with `uv` — no clone, no venv management. `fcmp`
+lands on your PATH like any `brew`- or `winget`-installed CLI:
+
+```bash
+uv tool install git+https://github.com/geekshootjack/fcmp
+
+# then, from anywhere:
+fcmp -a /src -b /backup
+```
+
+Maintenance:
+
+```bash
+# pick up new commits later
+uv tool upgrade fcmp
+
+# install a specific branch or tag
+uv tool install git+https://github.com/geekshootjack/fcmp@v0.1.0
+
+# one-off run without installing anything
+uvx --from git+https://github.com/geekshootjack/fcmp fcmp -a /src -b /backup
+```
+
+### For development
+
 ```bash
 git clone https://github.com/geekshootjack/fcmp.git
 cd fcmp

@@ -19,5 +19,8 @@ jobs:
       - run: uv build
       - uses: softprops/action-gh-release@v2
         with:
-          files: dist/*
+          # uv build drops a .gitignore into dist/; match only the artifacts
+          files: |
+            dist/*.whl
+            dist/*.tar.gz
           generate_release_notes: true

@@ -53,16 +53,18 @@ def scan(
     directory = Path(directory)
 
     for root, dirs, files in os.walk(directory):
-        dirs[:] = [
+        # Sort so traversal (and thus first-wins on duplicate keys) is
+        # deterministic across filesystems.
+        dirs[:] = sorted(
             d
             for d in dirs
             if not should_skip_dir(d) and not (ignore and ignore.matches_dir(d))
-        ]
+        )
         root_path = Path(root)
         if should_skip_path(root_path):
             continue
 
-        for name in files:
+        for name in sorted(files):
             if should_skip_file(name):
                 continue
             if ignore and ignore.matches_file(name):

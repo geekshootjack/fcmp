@@ -10,6 +10,19 @@ Common types: `feat`, `fix`, `chore`, `refactor`, `test`, `docs`
 - Only hold off on committing when the user explicitly asks not to commit yet, or when the work is still in a broken/unverified intermediate state.
 - Do not push unless the user asks for a push.
 
+# CI
+
+GitHub Actions (`.github/workflows/ci.yml`) runs pytest on every push to
+`main` and every PR, across ubuntu/windows/macos × Python 3.10/3.13.
+
+Write platform-independent tests — both of these have caused real cross-OS
+CI failures:
+- Never hardcode path separators; build expectations with `Path` /
+  `os.path` so they hold on Windows (`\`) and POSIX (`/`).
+- Never rely on filesystem enumeration order (`os.walk`, `scandir`); it is
+  alphabetical on NTFS but arbitrary on ext4. The scanner sorts its
+  traversal for this reason — keep it deterministic.
+
 # Releases
 
 Version is derived automatically from git tags via `hatch-vcs` — there is no version string to edit in code.
@@ -28,3 +41,9 @@ git push origin v2.1.0
 ```
 
 That's it — no file edits needed. The version is read from the tag at build/install time.
+
+Pushing a `v*` tag triggers `.github/workflows/release.yml`, which builds the
+sdist + wheel with `uv build` and publishes a GitHub Release with
+auto-generated notes. No PyPI publishing — users install with
+`uv tool install git+https://github.com/geekshootjack/fcmp[@vX.Y.Z]` or from
+the release wheel.

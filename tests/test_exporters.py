@@ -65,6 +65,7 @@ def test_export_json_shape(simple_report: Report, tmp_path: Path) -> None:
     out = tmp_path / "out.json"
     export(simple_report, out, "json")
     data = json.loads(out.read_text(encoding="utf-8"))
+    assert data["format_version"] == 1
     assert data["mode"] == "normal"
     assert data["group_a"]["directories"] == [str(Path("/src/a"))]
     assert data["group_b"]["directories"] == [str(Path("/src/b"))]

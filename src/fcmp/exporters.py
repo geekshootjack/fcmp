@@ -44,8 +44,15 @@ def _mismatch_to_dict(m: FrameMismatch) -> dict:
     return d
 
 
+# The JSON report is a public interface consumed by external tools (pxygen).
+# Additive keys are fine; renaming/removing keys or changing their semantics
+# requires bumping this and tagging a MAJOR release. See AGENTS.md.
+JSON_FORMAT_VERSION = 1
+
+
 def export_json(report: Report, path: Path) -> None:
     payload = {
+        "format_version": JSON_FORMAT_VERSION,
         "mode": report.mode,
         "generated_at": report.generated_at.isoformat(),
         "ignored": list(report.ignored),

@@ -101,6 +101,24 @@ fcmp -a DIR [DIR ...] -b DIR [DIR ...]
 | `0` | Success |
 | `2` | Invalid arguments or missing prerequisite (e.g. mediainfo for `proxy-frames`) |
 
+### JSON report format
+
+The JSON export is a stable interface for downstream tools:
+
+| Key | Type |
+| --- | --- |
+| `format_version` | `int` — schema version, currently `1` |
+| `mode` | `str` — `normal`, `proxy`, or `proxy-frames` |
+| `generated_at` | `str` — ISO 8601 timestamp |
+| `ignored` | `list[str]` — ignore patterns in effect |
+| `group_a.directories`, `group_b.directories` | `list[str]` |
+| `unique_in_a`, `unique_in_b` | `list[str]` — absolute paths |
+| `frame_mismatches` | `list[obj]` — proxy-frames mode only; includes `path_a`, `path_b` |
+
+New keys may be added at any time; keys are only renamed/removed in a MAJOR
+release, together with a `format_version` bump. Consumers should check
+`format_version` and fail clearly on versions they don't understand.
+
 ## Examples
 
 ```bash

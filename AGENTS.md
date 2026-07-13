@@ -23,6 +23,17 @@ CI failures:
   alphabetical on NTFS but arbitrary on ext4. The scanner sorts its
   traversal for this reason — keep it deterministic.
 
+# JSON report is a public interface
+
+The JSON export is parsed by external consumers (pxygen reads `unique_in_a`,
+`unique_in_b`, and `frame_mismatches[].path_a/path_b`). The schema carries a
+top-level `format_version` (`JSON_FORMAT_VERSION` in `exporters.py`).
+
+- Adding new keys is backwards compatible — no bump needed.
+- Renaming/removing keys or changing their meaning is a **breaking change**:
+  increment `JSON_FORMAT_VERSION`, tag a MAJOR release, and give pxygen a
+  heads-up (it has a golden-fixture contract test that will go red).
+
 # Releases
 
 Version is derived automatically from git tags via `hatch-vcs` — there is no version string to edit in code.

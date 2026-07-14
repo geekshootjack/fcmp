@@ -33,7 +33,8 @@ VIDEO_EXTENSIONS: frozenset[str] = frozenset(
         ".webm", ".flv", ".vob",
         ".ogv", ".ogg", ".dv",
         ".qt", ".f4v", ".m2ts",
-        ".ts", ".3gp", ".3g2",
+        ".mts", ".ts", ".3gp",
+        ".3g2",
     }
 )
 

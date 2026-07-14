@@ -63,7 +63,9 @@ def test_video_extensions_are_lowercase_and_start_with_dot() -> None:
         assert ext == ext.lower()
 
 
-@pytest.mark.parametrize("name", ["clip.mp4", "CLIP.MOV", "shot.MxF", "a.b.mkv"])
+@pytest.mark.parametrize(
+    "name", ["clip.mp4", "CLIP.MOV", "shot.MxF", "a.b.mkv", "00001.MTS", "clip.m2ts"]
+)
 def test_is_video_matches_known_extensions_case_insensitively(name: str) -> None:
     assert is_video(Path(name)) is True
 

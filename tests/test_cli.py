@@ -134,8 +134,17 @@ def test_main_exits_nonzero_on_missing_path(tmp_path: Path) -> None:
 
 
 def test_version_flag_prints_and_exits(capsys: pytest.CaptureFixture[str]) -> None:
+    for flag in ("-v", "-V", "--version"):
+        with pytest.raises(SystemExit) as exc:
+            cli.main([flag])
+        assert exc.value.code == 0
+    assert "fcmp v" in capsys.readouterr().out
+
+
+def test_help_shows_version(capsys: pytest.CaptureFixture[str]) -> None:
     with pytest.raises(SystemExit) as exc:
-        cli.main(["--version"])
+        cli.main(["-h"])
     assert exc.value.code == 0
-    captured = capsys.readouterr()
-    assert "fcmp" in captured.out.lower() or "2." in captured.out
+    from fcmp import __version__
+
+    assert f"fcmp v{__version__}" in capsys.readouterr().out

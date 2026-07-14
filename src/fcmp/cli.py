@@ -32,6 +32,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="fcmp",
         description=(
+            f"fcmp v{__version__}\n\n"
             "Compare two directory trees (or groups of them) for parity. "
             "Supports video proxy workflows, including frame-count verification."
         ),
@@ -44,6 +45,10 @@ def build_parser() -> argparse.ArgumentParser:
             "  fcmp -a /part1 /part2 -b /mirror -o reports/\n"
             "  fcmp -a /src -b /backup -i _gsdata_ '*.log' '*.mhl' ascmhl/\n"
         ),
+    )
+    parser.add_argument(
+        "-v", "-V", "--version",
+        action="version", version=f"fcmp v{__version__}",
     )
     parser.add_argument(
         "-a",
@@ -100,9 +105,6 @@ def build_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument(
         "-q", "--quiet", action="store_true", help="Suppress progress and status output."
-    )
-    parser.add_argument(
-        "--version", action="version", version=f"%(prog)s {__version__}"
     )
     return parser
 

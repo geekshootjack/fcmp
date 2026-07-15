@@ -92,7 +92,7 @@ fcmp -a DIR [DIR ...] -b DIR [DIR ...]
 | `-i`, `--ignore` | Name patterns to exclude from the comparison (glob syntax, case-insensitive; trailing `/` restricts a pattern to directories) | none |
 | `-o`, `--output-dir` | Directory to write reports into | current dir |
 | `-q`, `--quiet` | Suppress progress and summary output | off |
-| `--version` | Print version and exit | — |
+| `-v`, `--version` | Print version and exit | — |
 
 ### Exit codes
 
@@ -161,6 +161,20 @@ uv run fcmp -m proxy-frames -f html \
   -a /Volumes/Storage/Originals \
   -b /Volumes/EditDrive/Proxies
 ```
+
+**LAN storage via Windows UNC paths:**
+
+```powershell
+# Compare footage on a NAS share against a local proxy drive.
+# UNC paths work as-is — no drive-letter mapping needed.
+uv run fcmp -m proxy -f html -a "\\nas\footage\ProjectX" -b "D:\Proxies\ProjectX"
+```
+
+Note: in PowerShell, don't end a quoted path with a backslash
+(`"\\nas\share\"` turns `\"` into an escaped quote) — write
+`"\\nas\share"` instead. Mapped drive letters (`Z:\...`) work equally well.
+`proxy-frames` mode reads video headers over the network, so frame-count
+checks against a NAS are noticeably slower than against local disks.
 
 **Copy-completeness check across multiple drives:**
 

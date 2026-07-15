@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+import sys
 from collections.abc import Sequence
 from datetime import datetime
 from pathlib import Path
@@ -190,7 +191,12 @@ def _scan_with_progress(
 
 
 def main(argv: Sequence[str] | None = None) -> int:
+    if argv is None:
+        argv = sys.argv[1:]
     parser = build_parser()
+    if not argv:
+        parser.print_help()
+        return 2
     args = parser.parse_args(argv)
 
     console = Console(quiet=args.quiet, stderr=True)

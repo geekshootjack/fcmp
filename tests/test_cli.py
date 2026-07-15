@@ -133,6 +133,14 @@ def test_main_exits_nonzero_on_missing_path(tmp_path: Path) -> None:
     assert exit_code != 0
 
 
+def test_main_no_args_prints_help(capsys: pytest.CaptureFixture[str]) -> None:
+    exit_code = cli.main([])
+    assert exit_code == 2
+    out = capsys.readouterr().out
+    assert "usage: fcmp" in out
+    assert "--group-a" in out
+
+
 def test_version_flag_prints_and_exits(capsys: pytest.CaptureFixture[str]) -> None:
     for flag in ("-v", "-V", "--version"):
         with pytest.raises(SystemExit) as exc:

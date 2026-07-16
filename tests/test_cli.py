@@ -16,7 +16,7 @@ def test_build_parser_accepts_minimum_args(tmp_path: Path) -> None:
     args = parser.parse_args(["-a", str(tmp_path), "-b", str(tmp_path)])
     assert args.group_a == [tmp_path]
     assert args.group_b == [tmp_path]
-    assert args.mode == "normal"
+    assert args.mode == "proxy"
     assert args.format == ["html"]
 
 
@@ -64,6 +64,8 @@ def test_main_end_to_end_normal_mode(tmp_path: Path) -> None:
             str(a),
             "-b",
             str(b),
+            "-m",
+            "normal",
             "-f",
             "json",
             "-o",
@@ -105,6 +107,8 @@ def test_main_ignore_excludes_files_and_dirs(tmp_path: Path) -> None:
             str(a),
             "-b",
             str(b),
+            "-m",
+            "normal",
             "-i",
             "_gsdata_",
             "*.log",

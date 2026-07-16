@@ -40,11 +40,11 @@ def build_parser() -> argparse.ArgumentParser:
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog=(
             "Examples:\n"
-            "  fcmp -a /src -b /backup\n"
-            "  fcmp -a /originals -b /proxies -m proxy\n"
+            "  fcmp -a /originals -b /proxies\n"
+            "  fcmp -a /src -b /backup -m normal\n"
             "  fcmp -a /originals -b /proxies -m proxy-frames -f html json\n"
-            "  fcmp -a /part1 /part2 -b /mirror -o reports/\n"
-            "  fcmp -a /src -b /backup -i _gsdata_ '*.log' '*.mhl' ascmhl/\n"
+            "  fcmp -a /part1 /part2 -b /mirror -m normal -o reports/\n"
+            "  fcmp -a /src -b /backup -m normal -i _gsdata_ '*.log' '*.mhl' ascmhl/\n"
         ),
     )
     parser.add_argument(
@@ -73,7 +73,7 @@ def build_parser() -> argparse.ArgumentParser:
         "-m",
         "--mode",
         choices=MODE_CHOICES,
-        default="normal",
+        default="proxy",
         help="Comparison mode (default: %(default)s).",
     )
     parser.add_argument(

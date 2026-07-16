@@ -7,8 +7,8 @@ Built for verifying transcode jobs: after producing proxies from source clips,
 confirm no clip was dropped. In a long-running session, corrupted clips can be
 skipped silently — this catches those gaps.
 
-- **Normal mode** — match by filename (name + extension)
-- **Proxy mode** — match video files by basename, ignoring extension
+- **Proxy mode** (default) — match video files by basename, ignoring extension
+- **Normal mode** — match all files by filename (name + extension)
 - **Proxy-frames mode** — proxy mode plus frame-count verification
 
 Exports to JSON, TXT, CSV, or HTML (or any combination in a single run).
@@ -87,7 +87,7 @@ fcmp -a DIR [DIR ...] -b DIR [DIR ...]
 | --- | --- | --- |
 | `-a`, `--group-a` | One or more directories making up group A | required |
 | `-b`, `--group-b` | One or more directories making up group B | required |
-| `-m`, `--mode` | `normal`, `proxy`, or `proxy-frames` | `normal` |
+| `-m`, `--mode` | `normal`, `proxy`, or `proxy-frames` | `proxy` |
 | `-f`, `--format` | One or more of `json`, `txt`, `csv`, `html` | `html` |
 | `-i`, `--ignore` | Name patterns to exclude from the comparison (glob syntax, case-insensitive; trailing `/` restricts a pattern to directories) | none |
 | `-o`, `--output-dir` | Directory to write reports into | current dir |
@@ -122,20 +122,21 @@ release, together with a `format_version` bump. Consumers should check
 ## Examples
 
 ```bash
-# Simple: compare two directories, write an HTML report to the current dir.
-uv run fcmp -a /src -b /backup
+# Simple: verify proxies against originals (proxy mode is the default),
+# write an HTML report to the current dir.
+uv run fcmp -a /Volumes/Originals -b /Volumes/Proxies
+
+# Compare all files by exact name (backup mirrors, non-video trees).
+uv run fcmp -a /src -b /backup -m normal
 
 # Multiple formats in one run.
-uv run fcmp -a /src -b /backup -f html json csv
+uv run fcmp -a /src -b /backup -m normal -f html json csv
 
 # Multiple directories per group (supersedes the old "+" syntax).
-uv run fcmp -a /part1 /part2 /part3 -b /mirror -o reports/
+uv run fcmp -a /part1 /part2 /part3 -b /mirror -m normal -o reports/
 
 # Ignore sync/hash artifacts so only real media differences are reported.
-uv run fcmp -a /src -b /backup -i _gsdata_ '*.log' '*.mhl' ascmhl/
-
-# Video proxy: match by basename, ignore extension.
-uv run fcmp -a /Volumes/Originals -b /Volumes/Proxies -m proxy
+uv run fcmp -a /src -b /backup -m normal -i _gsdata_ '*.log' '*.mhl' ascmhl/
 
 # Full proxy verification: basename match + frame-count check.
 uv run fcmp -a /Volumes/Originals -b /Volumes/Proxies -m proxy-frames -f html
@@ -146,13 +147,13 @@ uv run fcmp -a /Volumes/Originals -b /Volumes/Proxies -m proxy-frames -f html
 **Video production workflow:**
 
 ```bash
-# Compare original footage with proxy files.
-uv run fcmp -m proxy -f html \
+# Compare original footage with proxy files (proxy mode is the default).
+uv run fcmp -f html \
   -a /Volumes/Storage/Originals \
   -b /Volumes/EditDrive/Proxies
 
 # Same, but export both HTML and JSON.
-uv run fcmp -m proxy -f html json \
+uv run fcmp -f html json \
   -a /Volumes/Storage/Originals \
   -b /Volumes/EditDrive/Proxies
 
@@ -167,7 +168,7 @@ uv run fcmp -m proxy-frames -f html \
 ```powershell
 # Compare footage on a NAS share against a local proxy drive.
 # UNC paths work as-is — no drive-letter mapping needed.
-uv run fcmp -m proxy -f html -a "\\nas\footage\ProjectX" -b "D:\Proxies\ProjectX"
+uv run fcmp -f html -a "\\nas\footage\ProjectX" -b "D:\Proxies\ProjectX"
 ```
 
 Note: in PowerShell, don't end a quoted path with a backslash
@@ -180,7 +181,7 @@ checks against a NAS are noticeably slower than against local disks.
 
 ```bash
 # Confirm every file in Backup1 + Backup2 also exists on the master drive.
-uv run fcmp -f csv \
+uv run fcmp -m normal -f csv \
   -a /Volumes/Backup1 /Volumes/Backup2 \
   -b /Volumes/Master
 ```
@@ -189,7 +190,7 @@ uv run fcmp -f csv \
 
 ```bash
 # Check whether every archived file made it into the current project set.
-uv run fcmp -f json \
+uv run fcmp -m normal -f json \
   -a /Archive/2024/Q1 /Archive/2024/Q2 /Archive/2024/Q3 \
   -b /CurrentProjects
 ```
